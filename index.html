@@ -192,9 +192,12 @@ button, input { font: inherit; color: inherit; }
 .stage-label { font-family: var(--font-label); font-size: 17px; color: var(--muted); margin: 0; }
 .digits {
   font-family: var(--font-num); font-weight: 600; font-size: clamp(66px, 19vw, 108px); line-height: .95;
-  margin: 0; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ink); transition: color .3s;
+  margin: 0; font-variant-numeric: tabular-nums; color: var(--ink); transition: color .3s;
 }
 .digits.is-hot { color: var(--bow); }
+/* Fredoka has no tabular figures, so each digit gets a box as wide as its widest digit and the colon never moves */
+.dg { display: inline-block; width: .58em; text-align: center; }
+.cl { display: inline-block; width: .26em; text-align: center; }
 .caption { font-family: var(--font-label); font-size: 18.5px; margin: 2px 0 0; text-wrap: balance; }
 .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
 .chip { font-size: 13.5px; padding: 5px 12px; border-radius: 999px; background: var(--pink-soft); color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -308,7 +311,7 @@ button, input { font: inherit; color: inherit; }
 .f-dot.is-now { background: var(--card); border-color: var(--bow); transform: scale(1.35); }
 .f-digits {
   margin: 0; font-family: var(--font-num); font-weight: 600; font-size: min(31vw, 56vh); line-height: .86;
-  letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); transition: color .3s;
+  font-variant-numeric: tabular-nums; color: var(--ink); transition: color .3s;
 }
 .f-digits.is-hot { color: var(--bow); }
 .f-digits.is-paused { color: var(--muted); }
@@ -771,6 +774,9 @@ button, input { font: inherit; color: inherit; }
   const cache = {};
   function setHTML(el, html) { if (cache[el.id] !== html) { cache[el.id] = html; el.innerHTML = html; } }
   function setText(el, t) { if (el.textContent !== t) el.textContent = t; }
+  function setDigits(el, t) {
+    setHTML(el, t.split('').map((ch) => (ch === ':' ? '<span class="cl">:</span>' : `<span class="dg">${ch}</span>`)).join(''));
+  }
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
   const dot = (f, rr) => {
@@ -909,7 +915,7 @@ button, input { font: inherit; color: inherit; }
     }
     setPhoto(photo);
     setText($('stageLabel'), label);
-    setText($('digits'), digits);
+    setDigits($('digits'), digits);
     $('digits').classList.toggle('is-hot', hot);
     setText($('caption'), caption);
     setText($('hint'), !dial ? '스페이스바로 시작하고 멈춤. F키로 크게 보기'
@@ -965,7 +971,7 @@ button, input { font: inherit; color: inherit; }
       setText($('fLabel'), ph === 'done' ? (single ? '끝' : '4교시 끝') : title);
       $('fDots').hidden = single;
       setHTML($('fDots'), st.map((s, i) => `<span class="f-dot${run.used[i] != null ? ' is-done' : ''}${i === idx && ph !== 'done' ? ' is-now' : ''}"></span>`).join(''));
-      setText($('fDigits'), digits);
+      setDigits($('fDigits'), digits);
       $('fDigits').classList.toggle('is-hot', hot);
       $('fDigits').classList.toggle('is-paused', ph === 'paused');
       const bar = live ? Math.max(0, r) / total : ph === 'done' ? 0 : 1;
